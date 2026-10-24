@@ -18,9 +18,24 @@ import pytest
 
 from accesshk.datasets import LineSequences, Station
 from accesshk.graph import build_graph
-from accesshk.routing import astar, dijkstra, plan
+from accesshk.routing import _station_entry_advice, astar, dijkstra, plan
 
 NETWORK = "data/processed/network.json"
+
+
+def test_entry_advice_schema_matches_evidence():
+    """origin/destination advice must use the same field names as
+    step_free_evidence (exit/how/mtr_managed) — the UI renders ONE
+    shape (regression: a 'via'/'how' mismatch showed '經 undefined')."""
+    _graph, reg = _synthetic()
+    st = next(s for s in reg.stations.values()
+              if s.facilities.get("AJ3") and s.facilities.get("AJ8"))
+    advice = _station_entry_advice(st, True)
+    assert advice, "expected at least one named step-free exit"
+    for a in advice:
+        assert {"exit", "how", "mtr_managed"} <= set(a), a
+        assert "via" not in a, a
+        assert a["how"]                            # non-empty label
 
 
 def _synthetic():

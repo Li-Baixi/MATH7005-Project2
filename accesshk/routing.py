@@ -203,12 +203,16 @@ def _refold(graph: TransitGraph, path: List[int]) -> Tuple[List[Segment], float]
 
 
 def _station_entry_advice(station: Station, entering: bool) -> List[dict]:
-    """Entrance/exit advice from per-exit facility data (step-free only)."""
+    """Entrance/exit advice from per-exit facility data (step-free only).
+
+    Field names match :func:`accesshk.facilities.step_free_evidence`
+    (``exit`` / ``how`` / ``mtr_managed``) so the UI renders one shape.
+    """
     advice = []
     for e in step_free_exits(station):
         advice.append({
             "exit": e["exit"],
-            "via": ITEM_LABELS.get(e["item"], e["item"]),
+            "how": ITEM_LABELS.get(e["item"], e["item"]),
             "mtr_managed": e["item"] not in NON_MTR_MANAGED,
         })
     return advice

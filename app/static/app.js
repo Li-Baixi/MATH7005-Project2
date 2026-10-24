@@ -22,6 +22,26 @@ const N = (nameEn) => {
   return lang === "en" ? m.en : lang === "zhcn" ? m.cn : m.zh;
 };
 
+/* Facility descriptions arrive as the English labels from the Python
+   core (ITEM_LABELS); localise them here.  Tolerates both payload
+   shapes ("how" and the older "via") for cached/offline data. */
+const HOW_L10N = {
+  "same-level entrance": { zh: "同層入口", zhcn: "同层入口" },
+  "ramp": { zh: "斜道", zhcn: "坡道" },
+  "lift (street to concourse)": { zh: "升降機（街道至大堂）", zhcn: "电梯（街道至大堂）" },
+  "lift (non-MTR managed)": { zh: "升降機（非港鐵管理）", zhcn: "电梯（非港铁管理）" },
+  "stair lift": { zh: "樓梯升降機", zhcn: "楼梯电梯" },
+  "stair lift (non-MTR managed)": { zh: "樓梯升降機（非港鐵管理）", zhcn: "楼梯电梯（非港铁管理）" },
+  "lift (concourse to platform)": { zh: "升降機（大堂至月台）", zhcn: "电梯（大堂至站台）" },
+  "vertical lifting platform": { zh: "垂直升降台", zhcn: "垂直升降台" },
+  "step-free access": { zh: "無障礙通道", zhcn: "无障碍通道" },
+};
+const howLabel = (a) => {
+  const raw = a.how || a.via || "";
+  if (lang === "en") return raw;
+  return (HOW_L10N[raw] || {})[lang === "zhcn" ? "zhcn" : "zh"] || raw;
+};
+
 const L = {
   zh: {
     tagline: "無障礙出行規劃 · 全程免樓梯",
@@ -31,7 +51,7 @@ const L = {
     ride: (s) => `乘 ${s.line} 綫：${N(s.board)} → ${N(s.alight)}（${s.stops} 站）`,
     transfer: (s) => `於 ${N(s.board)} 轉綫`,
     enter: "入站建議", exit: "出站建議",
-    via: "經", unnamed: "官方數據標記為無障礙（未具名入口）",
+    unnamed: "官方數據標記為無障礙（未具名入口）",
     fallbackTitle: "無障礙路線暫不可行",
     fallbackBody: (side, st, km) =>
       `此${side}車站未達全程無障礙標準。最近的無障礙車站：${st}（約 ${km} 公里）。`,
@@ -73,7 +93,7 @@ const L = {
     ride: (s) => `乘 ${s.line} 线：${N(s.board)} → ${N(s.alight)}（${s.stops} 站）`,
     transfer: (s) => `于 ${N(s.board)} 转线`,
     enter: "入站建议", exit: "出站建议",
-    via: "经", unnamed: "官方数据标记为无障碍（未具名入口）",
+    unnamed: "官方数据标记为无障碍（未具名入口）",
     fallbackTitle: "无障碍路线暂不可行",
     fallbackBody: (side, st, km) =>
       `此${side}车站未达全程无障碍标准。最近的无障碍车站：${st}（约 ${km} 公里）。`,
@@ -115,7 +135,7 @@ const L = {
     ride: (s) => `${s.line} line: ${N(s.board)} → ${N(s.alight)} (${s.stops} stops)`,
     transfer: (s) => `Change at ${N(s.board)}`,
     enter: "Entrance advice", exit: "Exit advice",
-    via: "via", unnamed: "official data marks step-free access (unnamed entrance)",
+    unnamed: "official data marks step-free access (unnamed entrance)",
     fallbackTitle: "Step-free route not possible",
     fallbackBody: (side, st, km) =>
       `This ${side} is not step-free end to end. Nearest accessible station: ${st} (~${km} km).`,
@@ -269,9 +289,13 @@ function renderAdvice(el, access, title) {
   const t = L[lang];
   if (!access.length) { el.hidden = true; return; }
   el.hidden = false;
-  el.innerHTML = `<strong>${title}</strong><br>` + access.map((a) =>
-    `♿ ${N(a.exit)} — ${a.how === "step-free access" ? t.unnamed : `${t.via} ${a.how}`}`
-  ).join("<br>");
+  el.innerHTML = `<strong>${title}</strong><br>` + access.map((a) => {
+    const how = a.how || a.via || "";
+    const label = how === "step-free access"
+      ? (lang === "en" ? t.unnamed : HOW_L10N["step-free access"][lang === "zhcn" ? "zhcn" : "zh"])
+      : howLabel(a);
+    return `♿ ${N(a.exit)} — ${label}`;
+  }).join("<br>");
 }
 
 async function planRoute(ev) {
