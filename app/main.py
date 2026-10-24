@@ -48,10 +48,14 @@ except FileNotFoundError:                      # partial checkout: degrade
 
 @app.get("/api/stations")
 def list_stations():
-    """Station pickers: name pair, serving lines, step-free flag."""
+    """Station pickers: trilingual names, coords, lines, step-free."""
+    from accesshk.l10n import to_simplified
     return [
         {"sid": st.sid, "name_en": st.name_en, "name_zh": st.name_zh,
+         "name_zh_cn": to_simplified(st.name_zh),
          "code": st.code, "lines": sorted(st.lines),
+         "lat": st.coord[0] if st.coord else None,
+         "lon": st.coord[1] if st.coord else None,
          "step_free": GRAPH.step_free_nodes[
              GRAPH.station_nodes[st.sid][0]]}
         for st in sorted(REGISTRY.stations.values(),

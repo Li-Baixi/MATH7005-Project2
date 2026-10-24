@@ -66,6 +66,7 @@ def summarize_eta(raw: dict, stops: Dict[str, dict],
                   max_arrivals: int = 3) -> List[dict]:
     """Raw API payload -> UI-friendly list (stop names joined from the
     static table, arrival texts, suspended flags)."""
+    from .l10n import to_simplified
     out: List[dict] = []
     for stop in raw.get("busStop", []):
         sid = stop.get("busStopId", "")
@@ -83,6 +84,7 @@ def summarize_eta(raw: dict, stops: Dict[str, dict],
             "stop_id": sid,
             "name_en": info.get("name_en") or sid,
             "name_zh": info.get("name_zh") or sid,
+            "name_zh_cn": to_simplified(info.get("name_zh") or sid),
             "suspended": bool(int(stop.get("isSuspended", "0") or 0)),
             "arrivals": arrivals,
         })

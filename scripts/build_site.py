@@ -27,6 +27,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from accesshk.analysis import full_analysis
 from accesshk.bundle import load_network
 from accesshk.fares import load_fare_tables
+from accesshk.l10n import to_simplified
 from accesshk.realtime import bus_routes, load_bus_stops
 from accesshk.routing import compare_routes
 
@@ -46,7 +47,9 @@ def main() -> None:
 
     stations = [
         {"sid": sid, "name_en": st.name_en, "name_zh": st.name_zh,
+         "name_zh_cn": to_simplified(st.name_zh),
          "code": st.code, "lines": sorted(st.lines),
+         "lat": st.coord[0], "lon": st.coord[1],
          "step_free": graph.step_free_nodes[graph.station_nodes[sid][0]]}
         for sid, st in sorted(registry.stations.items(), key=lambda kv: int(kv[0]))
     ]
@@ -73,7 +76,8 @@ def main() -> None:
           full_analysis(registry, graph))
     _dump(os.path.join(OUT, "bus_data.json"), {
         "routes": bus_routes(stops),
-        "stops": stops,
+        "stops": {sid: {**s, "name_zh_cn": to_simplified(s["name_zh"])}
+                  for sid, s in stops.items()},
         "fares": fares["bus"],
     })
 

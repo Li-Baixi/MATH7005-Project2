@@ -45,6 +45,25 @@ h1 { margin: 0; font-size: 30px; font-family: Georgia, serif; }
 }
 .ghost:active { border-color: var(--ink); color: var(--ink); }
 
+/* trilingual segmented switcher (繁 | 简 | EN) */
+.langGroup { display: flex; gap: 6px; }
+.langBtn {
+  background: none; border: 2px solid var(--faint); color: var(--muted);
+  border-radius: 10px; font-size: 17px; padding: 6px 12px; min-width: 48px;
+  min-height: 44px;
+}
+.langBtn.active { border-color: var(--rose-deep); color: var(--rose-deep); font-weight: 700; }
+
+/* locate button + status line */
+button.locate {
+  width: 100%; margin-top: 14px; padding: 12px;
+  font-size: 20px; color: var(--ink);
+  background: #fff; border: 2px solid var(--blue); border-radius: 14px;
+  min-height: 52px;
+}
+button.locate:active { background: var(--panel); }
+.locNote { margin: 8px 0 0; font-size: 18px; color: var(--sage); font-weight: 600; }
+
 main { padding: 14px 22px 30px; max-width: 640px; margin: 0 auto; }
 
 label { display: block; margin: 18px 0 6px; font-size: 21px; font-weight: 600; }
@@ -103,11 +122,14 @@ button.primary:active { background: var(--ink); }
 .weak li { margin: 6px 0; }
 .insBench { margin: 14px 0 0; color: var(--muted); font-size: 16px; }
 
-/* feeder-bus card */
+/* feeder-bus card (collapsed by default: it only matters near a route) */
 .card.bus { border-left-color: var(--blue); }
+.card.bus summary {
+  cursor: pointer; font-size: 23px; font-weight: 600; list-style-position: inside;
+}
 .chipBtn { font: inherit; cursor: pointer; min-height: 44px; }
 .chipBtn.active { border-color: var(--rose-deep); color: var(--rose-deep); font-weight: 700; }
-.busStops { margin: 0; padding-left: 26px; }
+.busStops { margin: 10px 0 0; padding-left: 26px; }
 .busStops li { margin: 10px 0; font-size: 19px; }
 .busStops strong { font-size: 20px; }
 .card.bus .src { margin-top: 12px; font-size: 14px; }
