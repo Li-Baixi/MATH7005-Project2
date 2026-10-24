@@ -271,10 +271,16 @@ def plan(graph: TransitGraph, origin: Station, destination: Station,
 
 
 def compare_routes(graph: TransitGraph, origin: Station,
-                   destination: Station) -> dict:
+                   destination: Station,
+                   fare_tables: Optional[dict] = None) -> dict:
     """The product's headline query: fastest route vs guaranteed
     step-free route, with a fallback suggestion when the latter is
     impossible from the requested endpoints.
+
+    ``fare_tables`` (optional, from :mod:`accesshk.fares`) attaches the
+    Octopus fare for the requested origin-destination pair — MTR fares
+    depend on entry/exit stations, not the path taken, so one lookup
+    covers both route variants.
 
     Fallback advice is only given for endpoints that are themselves not
     step-free (a compliant endpoint is never the problem), and unnamed
@@ -304,4 +310,8 @@ def compare_routes(graph: TransitGraph, origin: Station,
                     "access": advice,
                 }
 
-    return {"fastest": fastest, "step_free": step_free, "fallback": fallback}
+    result = {"fastest": fastest, "step_free": step_free, "fallback": fallback}
+    if fare_tables is not None:
+        from .fares import rail_fare
+        result["fares"] = rail_fare(fare_tables, origin.sid, destination.sid)
+    return result

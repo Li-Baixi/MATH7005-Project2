@@ -103,4 +103,18 @@ button.primary:active { background: var(--ink); }
 .weak li { margin: 6px 0; }
 .insBench { margin: 14px 0 0; color: var(--muted); font-size: 16px; }
 
+/* feeder-bus card */
+.card.bus { border-left-color: var(--blue); }
+.chipBtn { font: inherit; cursor: pointer; min-height: 44px; }
+.chipBtn.active { border-color: var(--rose-deep); color: var(--rose-deep); font-weight: 700; }
+.busStops { margin: 0; padding-left: 26px; }
+.busStops li { margin: 10px 0; font-size: 19px; }
+.busStops strong { font-size: 20px; }
+.card.bus .src { margin-top: 12px; font-size: 14px; }
+
+.fareLine {
+  background: #fff; border-radius: 12px; padding: 10px 14px;
+  font-size: 18px; margin: 0 0 18px;
+}
+
 .src { color: var(--muted); font-size: 15px; margin-top: 26px; }

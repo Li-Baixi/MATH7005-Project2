@@ -6,6 +6,9 @@ Serves the demo frontend and a small JSON API over the Python core:
     GET /api/route?from=&to=       fastest vs step-free comparison
     GET /api/station/{name}        accessibility profile of one station
     GET /api/analysis              clustering + benchmark analytics
+    GET /api/bus-routes            feeder-bus route ids
+    GET /api/bus-eta?route=        live feeder-bus arrivals (cached
+                                   fallback when offline, labelled)
 
 Run from the project root:
 
@@ -23,14 +26,24 @@ from fastapi.staticfiles import StaticFiles
 
 from accesshk.analysis import full_analysis
 from accesshk.bundle import load_network
+from accesshk.fares import load_fare_tables
+from accesshk.realtime import (CACHE_FILENAME, bus_routes, get_eta,
+                               load_bus_stops)
 from accesshk.routing import compare_routes
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NETWORK = os.path.join(BASE, "data", "processed", "network.json")
+RAW = os.path.join(BASE, "data", "raw")
 
-app = FastAPI(title="AccessHK", version="0.2.0")
+app = FastAPI(title="AccessHK", version="0.3.0")
 
 REGISTRY, GRAPH, META, ITEM_LABELS = load_network(NETWORK)
+
+try:
+    FARES = load_fare_tables(RAW, REGISTRY)
+    BUS_STOPS = load_bus_stops(os.path.join(RAW, "mtr_bus_stops.csv"))
+except FileNotFoundError:                      # partial checkout: degrade
+    FARES, BUS_STOPS = None, {}
 
 
 @app.get("/api/stations")
@@ -55,7 +68,7 @@ def route(from_station: str = Query(alias="from"),
         raise HTTPException(404, "unknown station name")
     if origin is destination:
         raise HTTPException(400, "origin and destination are the same")
-    return compare_routes(GRAPH, origin, destination)
+    return compare_routes(GRAPH, origin, destination, fare_tables=FARES)
 
 
 @app.get("/api/station/{name}")
@@ -92,6 +105,29 @@ def analysis():
     if _analysis_cache is None:
         _analysis_cache = full_analysis(REGISTRY, GRAPH)
     return _analysis_cache
+
+
+@app.get("/api/bus-routes")
+def feeder_routes():
+    """Feeder-bus route ids for the ETA picker."""
+    return {"routes": bus_routes(BUS_STOPS)}
+
+
+@app.get("/api/bus-eta")
+def bus_eta(route: str = Query("K12"), lang: str = Query("en")):
+    """Live feeder-bus arrivals for one route (POST to rt.data.gov.hk),
+    with a labelled cached fallback when the API is unreachable."""
+    if route not in bus_routes(BUS_STOPS):
+        raise HTTPException(404, "unknown bus route")
+    cache = os.path.join(os.path.dirname(NETWORK), CACHE_FILENAME)
+    try:
+        payload = get_eta(route, BUS_STOPS, cache, language=lang)
+    except Exception:
+        raise HTTPException(
+            503, "bus ETA unavailable (offline and no cached snapshot)")
+    if FARES:
+        payload["fares"] = FARES["bus"].get(route)
+    return payload
 
 
 # demo frontend (PWA shell — demo only, production would ship a native app

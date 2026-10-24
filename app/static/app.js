@@ -23,6 +23,25 @@ const L = {
     insWeakTitle: "最需改善的車站",
     insBench: (pct) => `A* 導航平均比戴克斯特拉少探討 ${pct}% 節點`,
     stations: "站",
+    busTitle: "接駁巴士實時到站",
+    busNext: (t) => `下一班 ${t}`,
+    busSuspended: "暫停服務",
+    busLive: "實時數據",
+    busCached: "離線快取（演示用）",
+    busEmpty: "此時段暫無預報班次",
+    busSrc: (src, at, fare) => {
+      const s = src === "live" ? "實時數據 rt.data.gov.hk" : "離線快照（非實時）";
+      const f = fare ? ` · 長者/傷殘 $${fare.octopus_elderly}` : "";
+      return `${s} · ${at}${f}`;
+    },
+    fareLine: (f) => {
+      if (!f) return "";
+      const bits = [`成人 $${f.octopus_adult}`];
+      if (f.octopus_elderly != null) bits.push(`長者 $${f.octopus_elderly}`);
+      if (f.octopus_pwd != null) bits.push(`傷殘 $${f.octopus_pwd}`);
+      const note = f.note === "airport_express" ? "（機場快綫票價）" : "";
+      return `八達通車費：${bits.join(" · ")} ${note}`;
+    },
   },
   en: {
     tagline: "Barrier-free journeys · step-free end to end",
@@ -43,6 +62,25 @@ const L = {
     insWeakTitle: "Stations needing most work",
     insBench: (pct) => `A* explores ${pct}% fewer nodes than Dijkstra on average`,
     stations: "stations",
+    busTitle: "Live feeder-bus arrivals",
+    busNext: (t) => `Next ${t}`,
+    busSuspended: "suspended",
+    busLive: "live",
+    busCached: "cached (demo)",
+    busEmpty: "no departures predicted right now",
+    busSrc: (src, at, fare) => {
+      const s = src === "live" ? "live · rt.data.gov.hk" : "cached snapshot (not live)";
+      const f = fare ? ` · elderly/PWD $${fare.octopus_elderly}` : "";
+      return `${s} · ${at}${f}`;
+    },
+    fareLine: (f) => {
+      if (!f) return "";
+      const bits = [`adult $${f.octopus_adult}`];
+      if (f.octopus_elderly != null) bits.push(`elderly $${f.octopus_elderly}`);
+      if (f.octopus_pwd != null) bits.push(`PWD $${f.octopus_pwd}`);
+      const note = f.note === "airport_express" ? " (Airport Express)" : "";
+      return `Octopus fare: ${bits.join(" · ")}${note}`;
+    },
   },
 };
 let lang = "zh";
@@ -59,8 +97,10 @@ function applyLang() {
   $("srcNote").textContent = t.src;
   $("insTitle").textContent = t.insTitle;
   $("insWeakTitle").textContent = t.insWeakTitle;
+  $("busTitle").textContent = t.busTitle;
   $("langBtn").textContent = lang === "zh" ? "EN" : "中文";
   if (lastInsights) renderInsights(lastInsights);
+  if (lastBus) renderBus(lastBus);
 }
 
 async function loadStations() {
@@ -130,10 +170,72 @@ async function planRoute(ev) {
     if (fb.destination) body += "<br>" + t.fallbackBody(t.destWord, fb.destination.station, fb.destination.distance_km);
     $("fbBody").innerHTML = body;
   }
+  const fareEl = $("fareLine");
+  if (data.fares) {
+    fareEl.hidden = false;
+    fareEl.textContent = t.fareLine(data.fares);
+  } else fareEl.hidden = true;
   $("results").scrollIntoView({ behavior: "smooth" });
 }
 
 let lastInsights = null;
+let lastBus = null;
+
+function renderBus(data) {
+  const t = L[lang];
+  $("busCard").hidden = false;
+  const list = $("busStops");
+  list.innerHTML = "";
+  if (!data.stops.length) {
+    const li = document.createElement("li");
+    li.textContent = t.busEmpty;
+    list.appendChild(li);
+  }
+  for (const stop of data.stops.slice(0, 5)) {
+    const li = document.createElement("li");
+    const name = lang === "zh" ? stop.name_zh : stop.name_en;
+    const next = stop.suspended
+      ? t.busSuspended
+      : (stop.arrivals[0] ? t.busNext(stop.arrivals[0].text) : "—");
+    li.innerHTML = `<strong>${name}</strong><br>${next}`;
+    list.appendChild(li);
+  }
+  $("busSrc").textContent =
+    t.busSrc(data.source, (data.fetched_at || "").slice(11, 16), data.fares);
+}
+
+async function loadBusRoutes() {
+  try {
+    const res = await fetch("/api/bus-routes");
+    if (!res.ok) return;
+    const { routes } = await res.json();
+    if (!routes.length) return;
+    $("busCard").hidden = false;
+    const chips = $("busChips");
+    chips.innerHTML = "";
+    for (const r of routes) {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "chip chipBtn";
+      chip.textContent = r;
+      chip.addEventListener("click", () => selectBus(r, chips));
+      chips.appendChild(chip);
+    }
+    selectBus(routes.includes("K12") ? "K12" : routes[0], chips);
+  } catch (e) { /* bus card stays hidden */ }
+}
+
+async function selectBus(route, chips) {
+  for (const c of chips.children) {
+    c.classList.toggle("active", c.textContent === route);
+  }
+  try {
+    const res = await fetch(`/api/bus-eta?route=${encodeURIComponent(route)}&lang=${lang === "zh" ? "zh" : "en"}`);
+    if (!res.ok) return;
+    lastBus = await res.json();
+    renderBus(lastBus);
+  } catch (e) { /* keep previous render */ }
+}
 
 function renderInsights(data) {
   const t = L[lang];
@@ -183,6 +285,7 @@ $("langBtn").addEventListener("click", async () => {
 applyLang();
 loadStations();
 loadAnalysis();
+loadBusRoutes();
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js").catch(() => {});
