@@ -34,7 +34,7 @@ Updated as the build progresses; feeds the final report.
 | # | Requirement | Status |
 |---|---|---|
 | 1 | PWA **demo only**; production would be a normal app | architecture keeps Python core UI-agnostic ✅ |
-| 2 | Mobile-app form factor, installable add-to-home-screen PWA, age-friendly: big text, high contrast, few taps | manifest+SW+PNG icons; standalone display; adb-reverse tip in demo script ✅ |
+| 2 | Installable add-to-home-screen PWA, hosted on GitHub Pages, mobile form factor, age-friendly: big text, high contrast, few taps | live at https://li-baixi.github.io/MATH7005-Project2/ — Python core precomputes all 9,312 route pairs into static JSON (build_site.py → deploy_site.py); manifest+SW+PNG icons; standalone display ✅ |
 | 3 | Python-driven (course alignment) | ✅ |
 | 4 | GitHub repo Li-Baixi/MATH7005-Project2 | pushed (main branch, tagged commits) ✅ |
 

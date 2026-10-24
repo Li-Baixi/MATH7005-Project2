@@ -4,6 +4,24 @@ MATH7005 2026/27 project. AccessHK plans MTR journeys that are
 **guaranteed step-free, end to end** — naming the entrance, the lift and
 the exit — instead of just the fastest route.
 
+**📱 线上版 / Hosted demo:** https://li-baixi.github.io/MATH7005-Project2/
+open on a phone browser → menu → *Add to Home Screen* → it installs as
+a standalone app (installable PWA, works offline for visited queries;
+live feeder-bus ETA is fetched directly from rt.data.gov.hk).
+
+## How the hosted version works
+
+GitHub Pages serves static files only — so the Python core **precomputes
+every origin→destination comparison** (9,312 pairs, one ~6 s build) into
+per-origin JSON shards the front-end lazy-loads. The deployment is a
+build artefact of the Python core, like a static site generator; the
+FastAPI service in `app/` remains the product's reference architecture.
+
+```bash
+python -I scripts/build_site.py data/processed/network.json data/raw site
+python -I scripts/deploy_site.py site      # pushes gh-pages + points Pages at it
+```
+
 ## Why
 
 - 1.6M+ Hong Kong residents are 65 or older; 500K+ live with a

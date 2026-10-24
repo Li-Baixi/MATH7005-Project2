@@ -149,6 +149,14 @@ its data source. 18 automated tests (`python -m pytest`) cover routing
 equivalence, clustering ground truth, fare lookups and the offline
 fallback.
 
+**Public deployment** (https://li-baixi.github.io/MATH7005-Project2/):
+the same Python core precomputes all 9,312 origin→destination
+comparisons into static JSON shards (~6 s build,
+`scripts/build_site.py`), which GitHub Pages serves — the hosted demo
+needs no backend at all, and the phone browser calls the live bus API
+directly (CORS is open). The deployment is a build artefact of the
+Python core, exactly like a static site generator.
+
 ## 5. Findings
 
 * **93/97 stations** are step-free end-to-end per official data; the 4

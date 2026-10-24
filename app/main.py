@@ -50,8 +50,9 @@ except FileNotFoundError:                      # partial checkout: degrade
 def list_stations():
     """Station pickers: name pair, serving lines, step-free flag."""
     return [
-        {"name_en": st.name_en, "name_zh": st.name_zh, "code": st.code,
-         "lines": sorted(st.lines), "step_free": GRAPH.step_free_nodes[
+        {"sid": st.sid, "name_en": st.name_en, "name_zh": st.name_zh,
+         "code": st.code, "lines": sorted(st.lines),
+         "step_free": GRAPH.step_free_nodes[
              GRAPH.station_nodes[st.sid][0]]}
         for st in sorted(REGISTRY.stations.values(),
                          key=lambda s: s.name_en)

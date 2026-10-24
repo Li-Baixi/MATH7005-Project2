@@ -1,6 +1,12 @@
 # AccessHK Demo Script (10 minutes, no slides)
 
-**Setup before the session (15 min checklist):**
+**Primary demo (zero setup):** the hosted PWA at
+https://li-baixi.github.io/MATH7005-Project2/ — open on the phone,
+*Add to Home Screen*, and everything below runs from the home-screen
+icon. The laptop server is only the fallback if the venue has no
+internet at all.
+
+**Fallback setup (15 min checklist, only if offline demo is needed):**
 
 1. Laptop: `python -m uvicorn app.main:app --host 0.0.0.0 --port 8000`
    (verify `curl localhost:8000/api/meta`, and run
@@ -50,10 +56,12 @@ install moment — "added from the browser, no app store").
 
 ### 4:30–6:00 — Live feeder-bus ETA
 - Tap the 巴士 card, route K12: next arrivals per stop, **live from
-  rt.data.gov.hk** (point at the 實時數據 label + timestamp).
-- Kill Wi-Fi, tap again: the card still answers — now labelled
-  離線快照. *"Stale data must introduce itself as stale."* (If the
-  venue has no internet at all, this order is reversed.)
+  rt.data.gov.hk** — on the hosted PWA the phone browser calls the
+  government API directly (CORS is open; zero backend).
+- Kill Wi-Fi (airplane mode), reopen the app: it still opens and
+  answers previously-viewed queries — offline-cached by the service
+  worker; the bus card honestly reports no data. *"Stale data must
+  introduce itself as stale."*
 
 ### 6:00–7:30 — The analytics view
 - Scroll to 數據洞察: 97 stations clustered by hand-written k-means

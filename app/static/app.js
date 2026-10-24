@@ -1,7 +1,24 @@
 /* AccessHK demo shell logic — plain JS, no frameworks.
-   Two selects, one button, two route cards: deliberately simple. */
+   Two selects, one button, two route cards: deliberately simple.
+
+   Runs in two modes from the same files:
+   * backend mode (default): FastAPI at /api/...
+   * static mode (GitHub Pages build): detects stations.json and uses
+     precomputed data; live bus ETA is fetched DIRECTLY from
+     rt.data.gov.hk (the API sends Access-Control-Allow-Origin: *). */
 
 const $ = (id) => document.getElementById(id);
+
+const BUS_API = "https://rt.data.gov.hk/v1/transport/mtr/bus/getSchedule";
+let STATIC_MODE = false;
+let BUS_DATA = null;
+
+async function detectMode() {
+  try {
+    const r = await fetch("stations.json", { method: "HEAD" });
+    STATIC_MODE = r.ok;
+  } catch (e) { STATIC_MODE = false; }
+}
 
 const L = {
   zh: {
@@ -104,13 +121,13 @@ function applyLang() {
 }
 
 async function loadStations() {
-  const res = await fetch("/api/stations");
+  const res = await fetch(STATIC_MODE ? "stations.json" : "/api/stations");
   const stations = await res.json();
   for (const sel of [$("fromSel"), $("toSel")]) {
     sel.innerHTML = "";
     for (const st of stations) {
       const opt = document.createElement("option");
-      opt.value = st.name_en;
+      opt.value = st.sid ?? st.name_en;
       const label = lang === "zh"
         ? `${st.name_zh} ${st.step_free ? "♿" : ""}`
         : `${st.name_en}${st.step_free ? " ♿" : ""}`;
@@ -144,9 +161,27 @@ function renderAdvice(el, access, title) {
 
 async function planRoute(ev) {
   ev.preventDefault();
-  const res = await fetch(`/api/route?from=${encodeURIComponent($("fromSel").value)}&to=${encodeURIComponent($("toSel").value)}`);
-  if (!res.ok) { alert(await res.text()); return; }
-  const data = await res.json();
+  const fromId = $("fromSel").value, toId = $("toSel").value;
+  let data = null;
+  try {
+    if (STATIC_MODE) {
+      const res = await fetch(`routes/${encodeURIComponent(fromId)}.json`);
+      if (!res.ok) throw new Error("origin data missing");
+      const perOrigin = await res.json();
+      data = perOrigin.pairs[toId] || null;
+    } else {
+      const res = await fetch(`/api/route?from=${encodeURIComponent(fromId)}&to=${encodeURIComponent(toId)}`);
+      if (!res.ok) throw new Error(await res.text());
+      data = await res.json();
+    }
+  } catch (e) {
+    alert(lang === "zh" ? "查詢失敗，請檢查網絡後重試。" : "Query failed, check the network and retry.");
+    return;
+  }
+  if (!data || !data.fastest) {
+    alert(lang === "zh" ? "此組合暫無可用路線。" : "No route available for this pair.");
+    return;
+  }
   const t = L[lang];
   $("results").hidden = false;
 
@@ -204,16 +239,44 @@ function renderBus(data) {
     t.busSrc(data.source, (data.fetched_at || "").slice(11, 16), data.fares);
 }
 
+function summarizeBus(raw, stops) {
+  return (raw.busStop || []).map((s) => ({
+    stop_id: s.busStopId,
+    name_en: (stops[s.busStopId] || {}).name_en || s.busStopId,
+    name_zh: (stops[s.busStopId] || {}).name_zh || s.busStopId,
+    suspended: s.isSuspended === "1",
+    arrivals: (s.bus || []).slice(0, 3).map((b) => ({
+      text: b.arrivalTimeText || "",
+      in_minutes: Math.round((+b.arrivalTimeInSecond || 0) / 60),
+      is_scheduled: b.isScheduled === "1",
+      is_delayed: b.isDelayed === "1",
+    })),
+  }));
+}
+
+function localIso() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}` +
+         `T${p(d.getHours())}:${p(d.getMinutes())}:00+08:00`;
+}
+
 async function loadBusRoutes() {
   try {
-    const res = await fetch("/api/bus-routes");
-    if (!res.ok) return;
-    const { routes } = await res.json();
-    if (!routes.length) return;
+    if (STATIC_MODE) {
+      const res = await fetch("bus_data.json");
+      if (!res.ok) return;
+      BUS_DATA = await res.json();
+    } else {
+      const res = await fetch("/api/bus-routes");
+      if (!res.ok) return;
+      BUS_DATA = await res.json();
+    }
+    if (!BUS_DATA.routes.length) return;
     $("busCard").hidden = false;
     const chips = $("busChips");
     chips.innerHTML = "";
-    for (const r of routes) {
+    for (const r of BUS_DATA.routes) {
       const chip = document.createElement("button");
       chip.type = "button";
       chip.className = "chip chipBtn";
@@ -221,7 +284,7 @@ async function loadBusRoutes() {
       chip.addEventListener("click", () => selectBus(r, chips));
       chips.appendChild(chip);
     }
-    selectBus(routes.includes("K12") ? "K12" : routes[0], chips);
+    selectBus(BUS_DATA.routes.includes("K12") ? "K12" : BUS_DATA.routes[0], chips);
   } catch (e) { /* bus card stays hidden */ }
 }
 
@@ -230,9 +293,28 @@ async function selectBus(route, chips) {
     c.classList.toggle("active", c.textContent === route);
   }
   try {
-    const res = await fetch(`/api/bus-eta?route=${encodeURIComponent(route)}&lang=${lang === "zh" ? "zh" : "en"}`);
-    if (!res.ok) return;
-    lastBus = await res.json();
+    if (STATIC_MODE) {
+      // direct browser call: rt.data.gov.hk sends Access-Control-Allow-Origin: *
+      const res = await fetch(BUS_API, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ language: lang === "zh" ? "zh" : "en", routeName: route }),
+      });
+      if (!res.ok) return;
+      const raw = await res.json();
+      lastBus = {
+        route,
+        source: "live",
+        fetched_at: localIso(),
+        refresh_seconds: +raw.appRefreshTimeInSecond || 60,
+        stops: summarizeBus(raw, BUS_DATA.stops || {}),
+        fares: (BUS_DATA.fares || {})[route],
+      };
+    } else {
+      const res = await fetch(`/api/bus-eta?route=${encodeURIComponent(route)}&lang=${lang === "zh" ? "zh" : "en"}`);
+      if (!res.ok) return;
+      lastBus = await res.json();
+    }
     renderBus(lastBus);
   } catch (e) { /* keep previous render */ }
 }
@@ -268,7 +350,7 @@ function renderInsights(data) {
 
 async function loadAnalysis() {
   try {
-    const res = await fetch("/api/analysis");
+    const res = await fetch(STATIC_MODE ? "analysis.json" : "/api/analysis");
     if (!res.ok) return;
     lastInsights = await res.json();
     renderInsights(lastInsights);
@@ -283,9 +365,11 @@ $("langBtn").addEventListener("click", async () => {
 });
 
 applyLang();
-loadStations();
-loadAnalysis();
-loadBusRoutes();
+detectMode().then(() => {
+  loadStations();
+  loadAnalysis();
+  loadBusRoutes();
+});
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js").catch(() => {});
