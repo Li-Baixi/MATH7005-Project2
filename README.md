@@ -17,8 +17,9 @@ the exit — instead of just the fastest route.
 
 | Source | Role | Licence |
 |---|---|---|
-| data.gov.hk — [MTR Routes, Fares and Barrier-Free Facilities](https://data.gov.hk/en-data/dataset/mtr-data-routes-fares-barrier-free-facilities) | **primary**: network, sequences, per-exit barrier-free facilities, fares | Open Data (MTR Corporation) |
-| OpenStreetMap (Overpass) | supplementary: station coordinates (official exit-coordinate column is empty in the current release) | ODbL |
+| data.gov.hk — [MTR Routes, Fares and Barrier-Free Facilities](https://data.gov.hk/en-data/dataset/mtr-data-routes-fares-barrier-free-facilities) | **primary**: network, sequences, per-exit barrier-free facilities, fares (rail + AEL + feeder bus) | Open Data (MTR Corporation) |
+| rt.data.gov.hk — MTR bus schedule API | **primary (live)**: real-time feeder-bus arrivals (POST `getSchedule`) | Open Data (MTR Corporation) |
+| Wikipedia API | supplementary: station coordinates (official exit-coordinate column is empty in the current release) | CC BY-SA |
 
 ## Architecture
 
@@ -46,9 +47,20 @@ python -I scripts/fetch_coords.py data/raw data/supplementary
 # 3. build the processed network bundle
 python -I scripts/build_network.py data/raw data/supplementary data/processed
 
-# 4. tests
+# 4. run the analysis suite (clustering, coverage, benchmark)
+python -I scripts/run_analysis.py data/processed/network.json
+
+# 5. tests
 python -m pytest tests/ -q
+
+# 6. serve the API + demo PWA
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
+
+Phone demo tip: `adb reverse tcp:8000 tcp:8000` over USB lets the
+phone browse `http://localhost:8000` — a secure context, so Chrome
+offers **Install app** and the PWA opens full-screen from the home
+screen (see `docs/demo-script.md`).
 
 ## Methods (hand-written, no scikit-learn one-liners)
 
@@ -62,8 +74,16 @@ python -m pytest tests/ -q
 4. **Dijkstra & A\*** — binary-heap implementations written from
    scratch; A* heuristic (straight-line / max line speed) is provably
    admissible, verified equal-cost against Dijkstra in tests.
-5. **Accessibility analytics** — category-coverage profiling and
-   clustering of stations by facility vectors (see `accesshk/analysis`).
+5. **Hand-written k-means** — k-means++ seeding, best-of-n restarts,
+   elbow/knee selection and a from-scratch silhouette score over
+   station facility vectors (`accesshk/analysis.py`); per-line
+   coverage and weighted accessibility scores power the gap analysis.
+6. **Real-time integration** — POST-only rt.data.gov.hk bus ETA with
+   stop-name joins and a *labelled* offline cache fallback
+   (`accesshk/realtime.py`).
+7. **Fare analytics** — origin-destination table lookups incl. the $2
+   elderly/PWD Octopus concessions; Airport Express joined by name
+   across its private id space (`accesshk/fares.py`).
 
 ## Repo layout
 
@@ -71,9 +91,17 @@ python -m pytest tests/ -q
 accesshk/     Python package (product core)
 scripts/      data pipeline + utility scripts
 app/          FastAPI service and demo frontend (PWA shell, demo-only)
-tests/        pytest suite
+tests/        pytest suite (18 tests)
 data/raw/     downloaded CSVs (git-ignored; re-download per README)
-data/supplementary/  cached OSM coordinates
-data/processed/      built network bundle (git-ignored)
-docs/         requirement checklists, AI-use declaration
+data/supplementary/  cached Wikipedia coordinates (committed)
+data/processed/      built network/analysis bundles (git-ignored)
+docs/         report, demo script, paper analysis, AI-use declaration
 ```
+
+## Documents
+
+- [docs/report.md](docs/report.md) — final report
+- [docs/demo-script.md](docs/demo-script.md) — 10-minute demo plan (no slides)
+- [docs/paper-analysis.md](docs/paper-analysis.md) — applied paper (PatchTST, ICLR 2023)
+- [docs/ai-use.md](docs/ai-use.md) — AI use declaration
+- [docs/requirements-checklist.md](docs/requirements-checklist.md) — requirement → implementation map
