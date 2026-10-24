@@ -1,0 +1,9 @@
+# raw + processed data are rebuilt from source, not committed
+data/raw/
+data/processed/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.DS_Store

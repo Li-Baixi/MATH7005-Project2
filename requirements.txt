@@ -1,0 +1,4 @@
+numpy>=1.21
+fastapi>=0.95
+uvicorn>=0.21
+pytest>=7.0
