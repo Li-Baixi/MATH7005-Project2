@@ -40,13 +40,16 @@ BOARDING_WAIT_MIN = 2.5     # expected wait per ride, shown separately
 
 def dijkstra(graph: TransitGraph, source: int, target: int,
              allowed: Optional[List[bool]] = None,
-             transfer_minutes: Optional[float] = None
+             transfer_minutes: Optional[float] = None,
+             stats: Optional[dict] = None
              ) -> Tuple[float, List[int]]:
     """Classic Dijkstra with a binary heap.
 
     ``allowed`` masks out nodes (used for the step-free profile) and
     ``transfer_minutes`` optionally overrides the cost of transfer edges
-    (they take longer when you must hunt for lifts).  Returns
+    (they take longer when you must hunt for lifts).  ``stats`` (optional
+    dict) is filled with ``expanded`` = number of nodes settled — used by
+    the analysis module to benchmark against A*.  Returns
     ``(cost, node_path)``; cost is ``inf`` when unreachable.
     """
     n = len(graph.node_key)
@@ -61,6 +64,8 @@ def dijkstra(graph: TransitGraph, source: int, target: int,
         if visited[u]:
             continue
         visited[u] = True
+        if stats is not None:
+            stats["expanded"] = stats.get("expanded", 0) + 1
         if u == target:
             break
         for v, w, kind, _line in graph.edges[u]:
@@ -85,7 +90,8 @@ def dijkstra(graph: TransitGraph, source: int, target: int,
 
 def astar(graph: TransitGraph, source: int, target: int,
           allowed: Optional[List[bool]] = None,
-          transfer_minutes: Optional[float] = None
+          transfer_minutes: Optional[float] = None,
+          stats: Optional[dict] = None
           ) -> Tuple[float, List[int]]:
     """A* with an admissible heuristic: straight-line distance to the
     target station divided by the fastest line speed in the network.
@@ -117,6 +123,8 @@ def astar(graph: TransitGraph, source: int, target: int,
         if closed[u]:
             continue
         closed[u] = True
+        if stats is not None:
+            stats["expanded"] = stats.get("expanded", 0) + 1
         if u == target:
             break
         for v, w, kind, _line in graph.edges[u]:

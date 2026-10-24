@@ -90,4 +90,17 @@ button.primary:active { background: var(--ink); }
 
 .fallback p { margin: 6px 0; }
 
+/* insights card (analysis view) */
+.card.insight { border-left-color: var(--faint); }
+.insLead { margin: 4px 0 12px; font-size: 19px; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.chip {
+  background: #fff; border: 2px solid var(--faint);
+  border-radius: 999px; padding: 8px 16px; font-size: 18px;
+}
+.card.insight h3 { margin: 14px 0 6px; font-size: 20px; }
+.weak { margin: 0; padding-left: 26px; font-size: 19px; }
+.weak li { margin: 6px 0; }
+.insBench { margin: 14px 0 0; color: var(--muted); font-size: 16px; }
+
 .src { color: var(--muted); font-size: 15px; margin-top: 26px; }

@@ -1,8 +1,9 @@
 /* Minimal service worker — demo shell caching so the phone demo works
    even if the venue Wi-Fi flakes. API calls always hit the network. */
 
-const CACHE = "accesshk-v1";
-const SHELL = ["./", "./style.css", "./app.js", "./manifest.json", "./icon.svg"];
+const CACHE = "accesshk-v2";
+const SHELL = ["./", "./style.css", "./app.js", "./manifest.json",
+               "./icon.svg", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)));

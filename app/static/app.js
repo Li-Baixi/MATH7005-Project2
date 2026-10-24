@@ -18,6 +18,11 @@ const L = {
       `此${side}車站未達全程無障礙標準。最近的無障礙車站：${st}（約 ${km} 公里）。`,
     originWord: "起點", destWord: "終點",
     src: "資料來源：data.gov.hk 港鐵路綫及無障礙設施開放數據（每月更新）",
+    insTitle: "數據洞察",
+    insLead: (k, n) => `${n} 個車站按無障礙特徵自動分為 ${k} 類（自寫 k-means 演算法）`,
+    insWeakTitle: "最需改善的車站",
+    insBench: (pct) => `A* 導航平均比戴克斯特拉少探討 ${pct}% 節點`,
+    stations: "站",
   },
   en: {
     tagline: "Barrier-free journeys · step-free end to end",
@@ -33,6 +38,11 @@ const L = {
       `This ${side} is not step-free end to end. Nearest accessible station: ${st} (~${km} km).`,
     originWord: "origin", destWord: "destination",
     src: "Data: data.gov.hk — MTR routes & barrier-free facilities (monthly)",
+    insTitle: "Data insights",
+    insLead: (k, n) => `${n} stations grouped into ${k} tiers (hand-written k-means)`,
+    insWeakTitle: "Stations needing most work",
+    insBench: (pct) => `A* explores ${pct}% fewer nodes than Dijkstra on average`,
+    stations: "stations",
   },
 };
 let lang = "zh";
@@ -47,7 +57,10 @@ function applyLang() {
   $("sfTitle").textContent = t.stepfree;
   $("fbTitle").textContent = t.fallbackTitle;
   $("srcNote").textContent = t.src;
+  $("insTitle").textContent = t.insTitle;
+  $("insWeakTitle").textContent = t.insWeakTitle;
   $("langBtn").textContent = lang === "zh" ? "EN" : "中文";
+  if (lastInsights) renderInsights(lastInsights);
 }
 
 async function loadStations() {
@@ -120,6 +133,46 @@ async function planRoute(ev) {
   $("results").scrollIntoView({ behavior: "smooth" });
 }
 
+let lastInsights = null;
+
+function renderInsights(data) {
+  const t = L[lang];
+  $("insights").hidden = false;
+  $("insLead").textContent =
+    t.insLead(data.kmeans.chosen_k, data.meta.n_stations);
+
+  const chips = $("insClusters");
+  chips.innerHTML = "";
+  for (const c of data.clusters) {
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.textContent = lang === "zh"
+      ? `${c.label_zh} · ${c.size} ${t.stations}`
+      : `${c.label_en} · ${c.size} ${t.stations}`;
+    chips.appendChild(chip);
+  }
+
+  const weak = $("insWeak");
+  weak.innerHTML = "";
+  for (const st of data.gaps.bottom.slice(0, 5)) {
+    const li = document.createElement("li");
+    const name = lang === "zh" ? st.name_zh : st.name_en;
+    li.textContent = `${name} — ${st.score}`;
+    weak.appendChild(li);
+  }
+
+  $("insBench").textContent = t.insBench(data.benchmark.nodes_saved_pct);
+}
+
+async function loadAnalysis() {
+  try {
+    const res = await fetch("/api/analysis");
+    if (!res.ok) return;
+    lastInsights = await res.json();
+    renderInsights(lastInsights);
+  } catch (e) { /* card stays hidden when the API is unreachable */ }
+}
+
 $("planForm").addEventListener("submit", planRoute);
 $("langBtn").addEventListener("click", async () => {
   lang = lang === "zh" ? "en" : "zh";
@@ -129,6 +182,7 @@ $("langBtn").addEventListener("click", async () => {
 
 applyLang();
 loadStations();
+loadAnalysis();
 
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js").catch(() => {});

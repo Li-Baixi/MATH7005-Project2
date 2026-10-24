@@ -5,6 +5,7 @@ Serves the demo frontend and a small JSON API over the Python core:
     GET /api/stations              station list for pickers
     GET /api/route?from=&to=       fastest vs step-free comparison
     GET /api/station/{name}        accessibility profile of one station
+    GET /api/analysis              clustering + benchmark analytics
 
 Run from the project root:
 
@@ -15,58 +16,21 @@ Wi-Fi) opens http://<laptop-ip>:8000 — no internet needed at show time.
 """
 from __future__ import annotations
 
-import json
 import os
-from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from accesshk.datasets import Station, StationRegistry
-from accesshk.graph import TransitGraph
+from accesshk.analysis import full_analysis
+from accesshk.bundle import load_network
 from accesshk.routing import compare_routes
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NETWORK = os.path.join(BASE, "data", "processed", "network.json")
 
-app = FastAPI(title="AccessHK", version="0.1.0")
+app = FastAPI(title="AccessHK", version="0.2.0")
 
-
-def _load_network(path: str):
-    """Rebuild the runtime objects from the processed bundle produced by
-    ``scripts/build_network.py`` (keeps startup instant and the API a
-    pure consumer of the pipeline artefact)."""
-    with open(path, encoding="utf-8") as f:
-        payload = json.load(f)
-
-    stations = {}
-    for sid, d in payload["stations"].items():
-        stations[sid] = Station(
-            sid=sid, code=d["code"], name_en=d["name_en"],
-            name_zh=d["name_zh"], lines=d["lines"],
-            coord=(d["lat"], d["lon"]) if "lat" in d else None,
-            facilities=d["facilities"],
-            exit_facilities=d["exit_facilities"])
-
-    registry = StationRegistry(stations)
-    node_key = [(sid, line) for sid, line in payload["graph"]["node_key"]]
-    station_nodes = {}
-    for i, (sid, _line) in enumerate(node_key):
-        station_nodes.setdefault(sid, []).append(i)
-
-    graph = TransitGraph(
-        node_key=node_key,
-        node_index={k: i for i, k in enumerate(node_key)},
-        edges=payload["graph"]["edges"],
-        station_nodes=station_nodes,
-        registry=registry,
-        step_free_nodes=payload["graph"]["step_free_nodes"])
-
-    return registry, graph, payload.get("meta", {}), payload.get("item_labels", {})
-
-
-REGISTRY, GRAPH, META, ITEM_LABELS = _load_network(NETWORK)
+REGISTRY, GRAPH, META, ITEM_LABELS = load_network(NETWORK)
 
 
 @app.get("/api/stations")
@@ -114,6 +78,20 @@ def station_profile(name: str):
 @app.get("/api/meta")
 def meta():
     return META
+
+
+_analysis_cache: dict | None = None
+
+
+@app.get("/api/analysis")
+def analysis():
+    """Full analytics payload (k-means clustering, line coverage, gaps,
+    Dijkstra-vs-A* benchmark).  Computed once on first request — 97
+    stations make this instant — and cached for the session."""
+    global _analysis_cache
+    if _analysis_cache is None:
+        _analysis_cache = full_analysis(REGISTRY, GRAPH)
+    return _analysis_cache
 
 
 # demo frontend (PWA shell — demo only, production would ship a native app
