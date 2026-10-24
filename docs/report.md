@@ -144,10 +144,14 @@ full-screen standalone; the shell is cached for offline open while
 API calls stay live. It is deliberately a thin shell — per the
 project's own scoping, production would be a native app over this same
 Python API. **Age-friendly by design**: 20px base type, high-contrast
-Morandi palette, two selects and one primary button; every card states
-its data source. 18 automated tests (`python -m pytest`) cover routing
-equivalence, clustering ground truth, fare lookups and the offline
-fallback.
+Morandi palette, two selects and one primary button, a one-tap
+"use my location" origin picker (browser geolocation → nearest MTR
+station), Chinese station names inside itineraries, and a trilingual
+interface (繁/簡/EN — Simplified names come from a hand-written
+Traditional→Simplified converter, `accesshk/l10n.py`); every card
+states its data source. 21 automated tests (`python -m pytest`) cover
+routing equivalence, clustering ground truth, fare lookups, the
+offline fallback and the converter.
 
 **Public deployment** (https://li-baixi.github.io/MATH7005-Project2/):
 the same Python core precomputes all 9,312 origin→destination
