@@ -5,7 +5,7 @@
      never intercepted.
    - backend build (FastAPI): /api/ requests pass through untouched. */
 
-const CACHE = "accesshk-v5";
+const CACHE = "accesshk-v6";
 const SHELL = ["./", "./style.css", "./app.js", "./manifest.json",
                "./icon.svg", "./icon-192.png", "./icon-512.png"];
 

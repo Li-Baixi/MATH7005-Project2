@@ -22,6 +22,26 @@ const N = (nameEn) => {
   return lang === "en" ? m.en : lang === "zhcn" ? m.cn : m.zh;
 };
 
+/* MTR line codes -> official trilingual names */
+const LINE_L10N = {
+  ISL: { zh: "港島綫", zhcn: "港岛线", en: "Island line" },
+  TWL: { zh: "荃灣綫", zhcn: "荃湾线", en: "Tsuen Wan line" },
+  KTL: { zh: "觀塘綫", zhcn: "观塘线", en: "Kwun Tong line" },
+  TKL: { zh: "將軍澳綫", zhcn: "将军澳线", en: "Tseung Kwan O line" },
+  EAL: { zh: "東鐵綫", zhcn: "东铁线", en: "East Rail line" },
+  TML: { zh: "屯馬綫", zhcn: "屯马线", en: "Tuen Ma line" },
+  TCL: { zh: "東涌綫", zhcn: "东涌线", en: "Tung Chung line" },
+  AEL: { zh: "機場快綫", zhcn: "机场快线", en: "Airport Express" },
+  DRL: { zh: "迪士尼綫", zhcn: "迪士尼线", en: "Disneyland Resort line" },
+  SIL: { zh: "南港島綫", zhcn: "南港岛线", en: "South Island line" },
+};
+const lineName = (code) => {
+  const m = LINE_L10N[code];
+  if (!m) return lang === "en" ? `${code} line` : code;
+  if (lang === "en") return `${m.en} (${code})`;
+  return lang === "zhcn" ? `${code} 线（${m.zhcn}）` : `${code} 綫（${m.zh}）`;
+};
+
 /* Facility descriptions arrive as the English labels from the Python
    core (ITEM_LABELS); localise them here.  Tolerates both payload
    shapes ("how" and the older "via") for cached/offline data. */
@@ -48,7 +68,7 @@ const L = {
     from: "起點", to: "終點", go: "規劃路線",
     fastest: "最快路線", stepfree: "無障礙路線 ✓ 全程免樓梯",
     minutes: "分鐘", transfers: "次轉綫",
-    ride: (s) => `乘 ${s.line} 綫：${N(s.board)} → ${N(s.alight)}（${s.stops} 站）`,
+    ride: (s) => `乘 ${lineName(s.line)}：${N(s.board)} → ${N(s.alight)}（${s.stops} 站）`,
     transfer: (s) => `於 ${N(s.board)} 轉綫`,
     enter: "入站建議", exit: "出站建議",
     unnamed: "官方數據標記為無障礙（未具名入口）",
@@ -90,7 +110,7 @@ const L = {
     from: "起点", to: "终点", go: "规划路线",
     fastest: "最快路线", stepfree: "无障碍路线 ✓ 全程免楼梯",
     minutes: "分钟", transfers: "次转线",
-    ride: (s) => `乘 ${s.line} 线：${N(s.board)} → ${N(s.alight)}（${s.stops} 站）`,
+    ride: (s) => `乘 ${lineName(s.line)}：${N(s.board)} → ${N(s.alight)}（${s.stops} 站）`,
     transfer: (s) => `于 ${N(s.board)} 转线`,
     enter: "入站建议", exit: "出站建议",
     unnamed: "官方数据标记为无障碍（未具名入口）",
@@ -132,7 +152,7 @@ const L = {
     from: "From", to: "To", go: "Find route",
     fastest: "Fastest route", stepfree: "Step-free route ✓",
     minutes: "min", transfers: "transfer(s)",
-    ride: (s) => `${s.line} line: ${N(s.board)} → ${N(s.alight)} (${s.stops} stops)`,
+    ride: (s) => `${lineName(s.line)}: ${N(s.board)} → ${N(s.alight)} (${s.stops} stops)`,
     transfer: (s) => `Change at ${N(s.board)}`,
     enter: "Entrance advice", exit: "Exit advice",
     unnamed: "official data marks step-free access (unnamed entrance)",
