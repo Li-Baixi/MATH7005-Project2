@@ -1,0 +1,93 @@
+/* AccessHK demo shell — age-friendly by design:
+   large type, high contrast, few controls, one primary action. */
+
+:root {
+  --bg: #F4F1EA;        /* oat */
+  --panel: #E9E3D8;
+  --ink: #4A453D;
+  --muted: #7A746A;
+  --faint: #B4AD9F;
+  --rose: #B98A87;
+  --rose-deep: #96625F;
+  --sage: #6E8464;
+  --sage-fill: #9CAF88;
+  --blue: #7E97A8;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  font-size: 20px;                 /* deliberately large base */
+  line-height: 1.55;
+}
+
+.top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 22px 8px;
+}
+.brand { display: flex; align-items: center; gap: 14px; }
+.ring {
+  display: grid; place-items: center;
+  width: 58px; height: 58px; border-radius: 50%;
+  background: var(--panel); font-size: 30px;
+  border: 3px solid var(--rose);
+}
+h1 { margin: 0; font-size: 30px; font-family: Georgia, serif; }
+.top p { margin: 2px 0 0; color: var(--muted); font-size: 17px; }
+
+.ghost {
+  background: none; border: 2px solid var(--faint); color: var(--muted);
+  border-radius: 12px; font-size: 18px; padding: 6px 16px;
+}
+.ghost:active { border-color: var(--ink); color: var(--ink); }
+
+main { padding: 14px 22px 30px; max-width: 640px; margin: 0 auto; }
+
+label { display: block; margin: 18px 0 6px; font-size: 21px; font-weight: 600; }
+
+select {
+  width: 100%; padding: 14px 16px; font-size: 22px;
+  border: 2px solid var(--faint); border-radius: 14px;
+  background: #fff; color: var(--ink); appearance: auto;
+}
+select:focus { outline: 3px solid var(--blue); }
+
+button.primary {
+  width: 100%; margin-top: 24px; padding: 18px;
+  font-size: 24px; font-weight: 700; letter-spacing: 2px;
+  color: #fff; background: var(--rose-deep); border: none;
+  border-radius: 16px; min-height: 64px;
+}
+button.primary:active { background: var(--ink); }
+
+#results { margin-top: 26px; }
+
+.card {
+  background: var(--panel); border-radius: 18px;
+  padding: 18px 20px; margin-bottom: 18px;
+  border-left: 8px solid var(--blue);
+}
+.card.stepfree { border-left-color: var(--sage); }
+.card.fallback { border-left-color: var(--rose); }
+
+.card h2 { margin: 0 0 6px; font-size: 23px; }
+.time { font-size: 26px; font-weight: 700; margin-bottom: 10px; }
+.card.stepfree .time { color: var(--sage); }
+
+.steps { margin: 0; padding-left: 26px; }
+.steps li { margin: 10px 0; font-size: 20px; }
+.steps li.transfer { color: var(--muted); list-style-type: none; margin-left: -26px; }
+
+.advice {
+  margin-top: 12px; background: #fff; border-radius: 12px;
+  padding: 12px 14px; font-size: 19px;
+}
+.advice strong { color: var(--sage); }
+
+.fallback p { margin: 6px 0; }
+
+.src { color: var(--muted); font-size: 15px; margin-top: 26px; }
