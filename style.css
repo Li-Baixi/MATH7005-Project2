@@ -1,0 +1,142 @@
+/* AccessHK demo shell — age-friendly by design:
+   large type, high contrast, few controls, one primary action. */
+
+:root {
+  --bg: #F4F1EA;        /* oat */
+  --panel: #E9E3D8;
+  --ink: #4A453D;
+  --muted: #7A746A;
+  --faint: #B4AD9F;
+  --rose: #B98A87;
+  --rose-deep: #96625F;
+  --sage: #6E8464;
+  --sage-fill: #9CAF88;
+  --blue: #7E97A8;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Segoe UI", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  font-size: 20px;                 /* deliberately large base */
+  line-height: 1.55;
+}
+
+.top {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 22px 8px;
+}
+.brand { display: flex; align-items: center; gap: 14px; }
+.ring {
+  display: grid; place-items: center;
+  width: 58px; height: 58px; border-radius: 50%;
+  background: var(--panel); font-size: 30px;
+  border: 3px solid var(--rose);
+}
+h1 { margin: 0; font-size: 30px; font-family: Georgia, serif; }
+.top p { margin: 2px 0 0; color: var(--muted); font-size: 17px; }
+
+.ghost {
+  background: none; border: 2px solid var(--faint); color: var(--muted);
+  border-radius: 12px; font-size: 18px; padding: 6px 16px;
+}
+.ghost:active { border-color: var(--ink); color: var(--ink); }
+
+/* trilingual segmented switcher (繁 | 简 | EN) */
+.langGroup { display: flex; gap: 6px; }
+.langBtn {
+  background: none; border: 2px solid var(--faint); color: var(--muted);
+  border-radius: 10px; font-size: 17px; padding: 6px 12px; min-width: 48px;
+  min-height: 44px;
+}
+.langBtn.active { border-color: var(--rose-deep); color: var(--rose-deep); font-weight: 700; }
+
+/* locate button + status line */
+button.locate {
+  width: 100%; margin-top: 14px; padding: 12px;
+  font-size: 20px; color: var(--ink);
+  background: #fff; border: 2px solid var(--blue); border-radius: 14px;
+  min-height: 52px;
+}
+button.locate:active { background: var(--panel); }
+.locNote { margin: 8px 0 0; font-size: 18px; color: var(--sage); font-weight: 600; }
+
+main { padding: 14px 22px 30px; max-width: 640px; margin: 0 auto; }
+
+label { display: block; margin: 18px 0 6px; font-size: 21px; font-weight: 600; }
+
+select {
+  width: 100%; padding: 14px 16px; font-size: 22px;
+  border: 2px solid var(--faint); border-radius: 14px;
+  background: #fff; color: var(--ink); appearance: auto;
+}
+select:focus { outline: 3px solid var(--blue); }
+
+button.primary {
+  width: 100%; margin-top: 24px; padding: 18px;
+  font-size: 24px; font-weight: 700; letter-spacing: 2px;
+  color: #fff; background: var(--rose-deep); border: none;
+  border-radius: 16px; min-height: 64px;
+}
+button.primary:active { background: var(--ink); }
+
+#results { margin-top: 26px; }
+
+.card {
+  background: var(--panel); border-radius: 18px;
+  padding: 18px 20px; margin-bottom: 18px;
+  border-left: 8px solid var(--blue);
+}
+.card.stepfree { border-left-color: var(--sage); }
+.card.fallback { border-left-color: var(--rose); }
+
+.card h2 { margin: 0 0 6px; font-size: 23px; }
+.time { font-size: 26px; font-weight: 700; margin-bottom: 10px; }
+.card.stepfree .time { color: var(--sage); }
+
+.steps { margin: 0; padding-left: 26px; }
+.steps li { margin: 10px 0; font-size: 20px; }
+.steps li.transfer { color: var(--muted); list-style-type: none; margin-left: -26px; }
+
+.advice {
+  margin-top: 12px; background: #fff; border-radius: 12px;
+  padding: 12px 14px; font-size: 19px;
+}
+.advice strong { color: var(--sage); }
+
+.fallback p { margin: 6px 0; }
+
+/* insights card (analysis view) */
+.card.insight { border-left-color: var(--faint); }
+.insLead { margin: 4px 0 12px; font-size: 19px; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.chip {
+  background: #fff; border: 2px solid var(--faint);
+  border-radius: 999px; padding: 8px 16px; font-size: 18px;
+}
+.card.insight h3 { margin: 14px 0 6px; font-size: 20px; }
+.weak { margin: 0; padding-left: 26px; font-size: 19px; }
+.weak li { margin: 6px 0; }
+.insBench { margin: 14px 0 0; color: var(--muted); font-size: 16px; }
+
+/* feeder-bus card (collapsed by default: it only matters near a route) */
+.card.bus { border-left-color: var(--blue); }
+.card.bus summary {
+  cursor: pointer; font-size: 23px; font-weight: 600; list-style-position: inside;
+}
+.chipBtn { font: inherit; cursor: pointer; min-height: 44px; }
+.chipBtn.active { border-color: var(--rose-deep); color: var(--rose-deep); font-weight: 700; }
+.busStops { margin: 10px 0 0; padding-left: 26px; }
+.busStops li { margin: 10px 0; font-size: 19px; }
+.busStops strong { font-size: 20px; }
+.card.bus .src { margin-top: 12px; font-size: 14px; }
+
+.fareLine {
+  background: #fff; border-radius: 12px; padding: 10px 14px;
+  font-size: 18px; margin: 0 0 18px;
+}
+
+.src { color: var(--muted); font-size: 15px; margin-top: 26px; }

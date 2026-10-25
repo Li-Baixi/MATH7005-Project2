@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>AccessHK · 無障礙出行</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#F4F1EA">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="ring" aria-hidden="true">♿</span>
+      <div>
+        <h1>AccessHK</h1>
+        <p id="tagline">無障礙出行規劃 · 全程免樓梯</p>
+      </div>
+    </div>
+    <div class="langGroup" role="group" aria-label="Language 語言">
+      <button class="langBtn active" data-lang="zh" type="button">繁</button>
+      <button class="langBtn" data-lang="zhcn" type="button">简</button>
+      <button class="langBtn" data-lang="en" type="button">EN</button>
+    </div>
+  </header>
+
+  <main>
+    <form id="planForm">
+      <button id="locBtn" class="locate" type="button">📍 使用我的位置</button>
+      <p id="locNote" class="locNote" hidden></p>
+      <label for="fromSel" id="fromLbl">起點</label>
+      <select id="fromSel" required></select>
+      <label for="toSel" id="toLbl">終點</label>
+      <select id="toSel" required></select>
+      <button id="goBtn" class="primary" type="submit">規劃路線</button>
+    </form>
+
+    <section id="results" hidden>
+      <div class="card fastest" id="fastCard">
+        <h2 id="fastTitle">最快路線</h2>
+        <div class="time" id="fastTime"></div>
+        <ol class="steps" id="fastSteps"></ol>
+      </div>
+      <div class="card stepfree" id="sfCard">
+        <h2 id="sfTitle">無障礙路線 ✓</h2>
+        <div class="time" id="sfTime"></div>
+        <ol class="steps" id="sfSteps"></ol>
+        <div class="advice" id="sfAdvice"></div>
+      </div>
+      <div class="card fallback" id="fbCard" hidden>
+        <h2 id="fbTitle">無障礙路線暫不可行</h2>
+        <p id="fbBody"></p>
+      </div>
+      <p class="fareLine" id="fareLine" hidden></p>
+    </section>
+
+    <details id="busCard" class="card bus" hidden>
+      <summary id="busTitle">接駁巴士實時到站</summary>
+      <div id="busChips" class="chips"></div>
+      <ol id="busStops" class="busStops"></ol>
+      <p class="src" id="busSrc"></p>
+    </details>
+
+    <section id="insights" class="card insight" hidden>
+      <h2 id="insTitle">數據洞察</h2>
+      <p class="insLead" id="insLead"></p>
+      <div id="insClusters" class="chips"></div>
+      <h3 id="insWeakTitle">最需改善的車站</h3>
+      <ol id="insWeak" class="weak"></ol>
+      <p class="insBench" id="insBench"></p>
+    </section>
+
+    <p class="src" id="srcNote">
+      資料來源：data.gov.hk 港鐵路綫及無障礙設施開放數據（每月更新）
+    </p>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
