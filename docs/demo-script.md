@@ -40,19 +40,23 @@ own per-exit data."* Show the app icon on the home screen (the PWA
 install moment — "added from the browser, no app store").
 
 ### 1:00–3:30 — The headline query (live, on the phone)
-- Choose 起點 深水埗 Sham Shui Po → 終點 金鐘 Admiralty.
-- Read the two cards: fastest vs step-free (✓ card), the transfers,
-  and the **entrance advice**: *which exit, via what* (lift, ramp) —
-  data the incumbents don't show.
-- Point at the fare line: 成人 $9.x · **長者 $2 · 傷殘 $2** — the
-  audience's real price.
+- The app opens prefilled 起點 中環 Central → 終點 炮台山 Fortress Hill
+  (the pitch deck's story) — one tap on 規劃.
+- Read the cards: fastest is a **14-min direct train**, but the
+  step-free card says **impossible** — Fortress Hill is not step-free
+  in the official data. The app then answers the real question:
+  **nearest step-free station 天后 Tin Hau · 0.6 km**, and at Central
+  board via the **Exit A lift**.
+- Point at the fare line: 成人 $5.9 · **長者 $2 · 傷殘 $2** (concession
+  fares are distance-tiered in the official table; this pair is $2).
 
-### 3:30–4:30 — The fallback feature (the "wow" of honesty)
-- Route 炮台山 Fortress Hill → anywhere. The step-free card is
-  impossible; the app says so and answers the real question: *nearest
-  step-free station is X, Y km away, enter via ramp*.
-- One sentence on why: the official data marks 4 stations this way —
-  we show what the data says and flag it, never silently patch.
+### 3:30–4:30 — The second query (when both routes work)
+- Switch to 深水埗 Sham Shui Po → 金鐘 Admiralty: fastest = step-free
+  (17.8 min, direct), plus the **per-exit entrance advice** — B1 lift /
+  A1 stair lift at Sham Shui Po, E lift / A&D stair lift at Admiralty —
+  data the incumbents don't show. 成人 $13.2 · 長者 $2.6.
+- One sentence on honesty: the official data marks 4 stations not
+  step-free — we show what the data says and flag it, never silently patch.
 
 ### 4:30–6:00 — Live feeder-bus ETA
 - Tap the 巴士 card, route K12: next arrivals per stop, **live from

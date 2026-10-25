@@ -39,7 +39,7 @@ release, 9 CSVs + 1 real-time API, mirrored from opendata.mtr.com.hk):
 |---|---|
 | `mtr_lines_and_stations.csv` | network topology: 97 stations, 10 lines, per-line sequences |
 | `barrier_free_facilities.csv` | per-station *and per-exit* facility flags (AJ/MJ/VJ/HJ codes) |
-| `mtr_lines_fares.csv` | 9,216 origin-destination fares incl. elderly ($2) and PWD ($2) Octopus concessions |
+| `mtr_lines_fares.csv` | 9,216 origin-destination fares incl. distance-tiered elderly/PWD Octopus concessions (from $2) |
 | `airport_express_fares.csv` | AEL fares (separate id space, joined by name) |
 | `mtr_bus_stops.csv` / `mtr_bus_fares.csv` / `mtr_bus_routes.csv` | feeder-bus stop table (ids, coordinates, bilingual names) + fares |
 | `rt.data.gov.hk` bus schedule API | **live** arrival forecasts (see §3.4) |

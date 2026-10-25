@@ -255,8 +255,8 @@ async function loadStations() {
   populateStations();
   // prefill a demonstrative pair so the first tap shows the product's point
   const byEn = (name) => STATIONS.find((s) => s.name_en === name)?.sid;
-  $("fromSel").value = byEn("Sham Shui Po") || STATIONS[0].sid;
-  $("toSel").value = byEn("Admiralty") || STATIONS[1].sid;
+  $("fromSel").value = byEn("Central") || STATIONS[0].sid;
+  $("toSel").value = byEn("Fortress Hill") || STATIONS[1].sid;
 }
 
 /* --- geolocation: nearest MTR station becomes the origin --- */
